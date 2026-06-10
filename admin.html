@@ -2,14 +2,14 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#3B1F08">
 <meta name="robots" content="noindex, nofollow">
 <title>Tessi Potato – Admin</title>
 <style>
 :root{
   --cream:#F0F4F8;--warm:#E0EAF5;--gold:#1A73E8;--gold2:#4DA3FF;
-  --brown:#0D1B2A;--muted:#4A6080;--border:rgba(26,115,232,.2);
+  --brown:#0D1B2A;--muted:#3D536E;--border:rgba(26,115,232,.2);
   --green:#059669;--red:#B91C1C;--r:14px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -182,6 +182,7 @@ textarea{resize:vertical;min-height:70px}
         <label>Senha de acesso</label>
         <div class="pw-row" id="pw-row">
           <input type="password" id="pw-in" placeholder="••••••••••••"
+            aria-label="Senha de acesso"
             onkeydown="if(event.key==='Enter')doLogin()">
           <button class="pw-eye" type="button" onclick="tglPw('pw-in')">👁</button>
         </div>
@@ -1589,10 +1590,24 @@ function handleImg(e){
   const f=e.target.files[0];if(!f)return;
   const r=new FileReader();
   r.onload=ev=>{
-    pendImg=ev.target.result;
-    const p=document.getElementById('img-prev');
-    p.src=pendImg;p.style.display='block';
-    document.getElementById('btn-rm').style.display='inline-block';
+    // Compress image before storing to keep localStorage lean and page fast
+    const img=new Image();
+    img.onload=()=>{
+      const MAX=600; // max dimension px
+      let w=img.width,h=img.height;
+      if(w>MAX||h>MAX){
+        if(w>h){h=Math.round(h*MAX/w);w=MAX;}
+        else{w=Math.round(w*MAX/h);h=MAX;}
+      }
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      pendImg=canvas.toDataURL('image/webp',0.75);
+      const p=document.getElementById('img-prev');
+      p.src=pendImg;p.style.display='block';
+      document.getElementById('btn-rm').style.display='inline-block';
+    };
+    img.src=ev.target.result;
   };
   r.readAsDataURL(f);
 }
